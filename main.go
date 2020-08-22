@@ -2,18 +2,40 @@ package main
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/stevenw47/uwTranscript/transcript"
 )
 
 func main() {
-
 	pdf, err := transcript.ExtractPdf("transcript.pdf")
 	if err != nil {
 		panic(err)
 	}
 
-	grade, gpa := transcript.ParsePdf(pdf)
-	fmt.Printf("Grade Average: %v\n", grade)
-	fmt.Printf("GPA: %v\n", gpa)
+	terms := transcript.ParsePdf(pdf)
+	var totalGrade float64
+	var totalGPA float64
+	var totalCount int
+	for _, term := range terms {
+		var termGrade float64
+		var termGPA float64
+		var termCount int
+
+		for _, grade := range term.Grades {
+			termGrade += float64(grade.Grade)
+			termGPA += transcript.GradeToGPA(grade.Grade)
+			termCount++
+		}
+		totalGrade += termGrade
+		totalGPA += termGPA
+		totalCount += termCount
+		fmt.Printf("%v (%v)\n", term.Name, termCount)
+		fmt.Printf("Term Average: %v\n", termGrade/float64(termCount))
+		fmt.Printf("Term GPA: %v\n", math.Round(100*termGPA/float64(termCount))/100)
+		fmt.Println("")
+	}
+	fmt.Printf("Overall (%v)\n", totalCount)
+	fmt.Printf("Average: %v\n", totalGrade/float64(totalCount))
+	fmt.Printf("GPA: %v\n", math.Round(100*totalGPA/float64(totalCount))/100)
 }

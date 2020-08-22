@@ -1,13 +1,29 @@
 package transcript
 
 import (
-	// "fmt"
-	"strings"
+	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
+
 	"github.com/ledongthuc/pdf"
 )
 
-func gradeToGPA(grade int) float64 {
+// Term stores information about a single term
+type Term struct {
+	Name   string
+	Grades []Grade
+}
+
+// Grade stores information about a single grade
+type Grade struct {
+	Subject    string
+	CourseCode string
+	Grade      int
+}
+
+// GradeToGPA converts a grade into its GPA equivalent
+func GradeToGPA(grade int) float64 {
 	if 90 <= grade && grade <= 100 {
 		return 4
 	}
@@ -72,23 +88,23 @@ func ExtractPdf(path string) ([][]string, error) {
 		rows, _ := p.GetTextByRow()
 		for _, row := range rows {
 			rowOutput := make([]string, 1)
-		    for _, word := range row.Content {
+			for _, word := range row.Content {
 				rowOutput = append(rowOutput, word.S)
 			}
 			pdfOutput = append(pdfOutput, rowOutput)
-			
+
 		}
 	}
 	return pdfOutput, nil
 }
 
-// ParsePdf takes the data from the pdf and returns the average grade and GPA
-func ParsePdf(pdf [][]string) (float64, float64) {
-	var totalGrade float64
-	var totalGPA float64
-	var count int
+// ParsePdf takes the data from the pdf and returns grades by term
+func ParsePdf(pdf [][]string) []Term {
+	var terms = make([]Term, 0)
+	var termRegexp = regexp.MustCompile("(Fall|Winter|Spring) ([0-9][0-9][0-9][0-9])")
+	var curTerm Term = Term{}
+
 	for _, row := range pdf {
-		// TODO: also if its an array containing only whitespace strings
 		if len(row) == 0 {
 			continue
 		}
@@ -100,34 +116,39 @@ func ParsePdf(pdf [][]string) (float64, float64) {
 
 		// this is trimming the text
 		for i, col := range row {
-			col = strings.Join(strings.Fields(col)," ")
+			col = strings.Join(strings.Fields(col), " ")
 			row[i] = col
 		}
-		// fmt.Printf("%+q\n", row)
 
-		// TODO: temporary hacky way to get grade
+		// detects if a new term started
+		if len(row) == 1 && termRegexp.MatchString(row[0]) {
+			if len(curTerm.Grades) > 0 {
+				terms = append(terms, curTerm)
+			}
+			curTerm = Term{Name: row[0]}
+		}
+
 		if len(row) == 6 {
-			if row[0] == "Program:" {
+			matched, _ := regexp.MatchString(`^[A-Z]+$`, row[0])
+			if !matched {
 				continue
 			}
 			// we ignore these
 			if row[0] == "COOP" || row[0] == "PD" || row[0] == "WKRPT" {
 				continue
 			}
-			// these don't count
+			// these don't count (not sure about WF)
 			if row[5] == "WD" || row[5] == "WF" {
 				continue
 			}
-			// fmt.Printf("%+q\n", row)
 			grade, err := strconv.Atoi(row[5])
 			if err != nil {
-				// fmt.Println(err)
+				fmt.Println(err)
 				continue
 			}
-			totalGrade += float64(grade)
-			totalGPA += gradeToGPA(grade)
-			count++
+			// fmt.Printf("%+q\n", row)
+			curTerm.Grades = append(curTerm.Grades, Grade{row[0], row[1], grade})
 		}
 	}
-	return totalGrade / float64(count), totalGPA / float64(count)
+	return terms
 }
