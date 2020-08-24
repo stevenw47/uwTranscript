@@ -3,12 +3,18 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
 
 	"github.com/stevenw47/uwTranscript/transcript"
 )
 
 func main() {
-	pdf, err := transcript.ExtractPdf("transcript.pdf")
+	args := os.Args
+	if len(args) < 2 {
+		fmt.Println("Please provide the path to the transcript as an argument.")
+		return
+	}
+	pdf, err := transcript.ExtractPdf(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
