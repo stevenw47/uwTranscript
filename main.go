@@ -42,6 +42,7 @@ func main() {
 		fmt.Println("")
 	}
 	fmt.Printf("Overall (%v)\n", totalCount)
+	fmt.Printf("Total: %v\n", totalGrade)
 	fmt.Printf("Average: %v\n", totalGrade/float64(totalCount))
 	fmt.Printf("GPA: %v\n", math.Round(100*totalGPA/float64(totalCount))/100)
 }
