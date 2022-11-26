@@ -138,7 +138,7 @@ func ParsePdf(pdf [][]string) []Term {
 				continue
 			}
 			// these don't count (not sure about WF)
-			if row[5] == "WD" || row[5] == "WF" {
+			if row[5] == "CR" || row[5] == "WD" || row[5] == "WF" {
 				continue
 			}
 			grade, err := strconv.Atoi(row[5])
