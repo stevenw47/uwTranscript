@@ -6,7 +6,7 @@ uwTranscript is a CLI tool to parse your UW transcript and get information about
 
 Install the package using
 ```
-go get github.com/stevenw47/uwTranscript
+go install github.com/stevenw47/uwTranscript@latest
 ```
 
 Once installed, ensure that `$GOPATH/bin` is in your `$PATH`.
