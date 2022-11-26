@@ -150,5 +150,9 @@ func ParsePdf(pdf [][]string) []Term {
 			curTerm.Grades = append(curTerm.Grades, Grade{row[0], row[1], grade})
 		}
 	}
+	// append last term
+	if len(curTerm.Grades) > 0 {
+		terms = append(terms, curTerm)
+	}
 	return terms
 }
